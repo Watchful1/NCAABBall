@@ -170,7 +170,7 @@ while True:
 			output = getGameByID(str(game['id']))
 			if output is None:
 				log.debug("Posting thread for game: "+game['id'])
-				threadID = sub.submit("Found upcoming game: {0} vs. {1} [{2}]".format(game['home']['nameRaw'], game['away']['nameRaw'], game['startTime']), "")
+				threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".format(game['home']['nameRaw'], game['away']['nameRaw'], game['startTime']), "")
 				postGame(str(game['id']), str(threadID))
 
 		if 'finalMessage' in game and game['finalMessage'] == "Final":
