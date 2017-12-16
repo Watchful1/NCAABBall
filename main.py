@@ -177,7 +177,7 @@ while True:
 			finalGames.add(str(game['id']))
 
 	for game in getGames():
-		gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S")
+		gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
 		if game['gameid'] in finalGames or gamePostDatetime > currentDate - timedelta(hours=8):
 			log.debug("Deleting final game: "+game['gameid'])
 			r.submission(id=game['threadid']).delete()
