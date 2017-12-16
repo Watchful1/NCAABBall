@@ -94,14 +94,14 @@ def postGame(gameID, threadID):
 def getGames():
 	c = dbConn.cursor()
 	result = c.execute('''
-		SELECT ThreadID, GameID
+		SELECT ThreadID, GameID, CreationDate
 		FROM threads
 		WHERE Deleted = 0
 	''')
 
 	out = []
 	for game in result.fetchall():
-		out.append({'threadid': game[0], 'gameid': game[1]})
+		out.append({'threadid': game[0], 'gameid': game[1], 'date': game[2]})
 
 	return out
 
@@ -177,7 +177,8 @@ while True:
 			finalGames.add(str(game['id']))
 
 	for game in getGames():
-		if game['gameid'] in finalGames:
+		gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S")
+		if game['gameid'] in finalGames or gamePostDatetime > currentDate - timedelta(hours=8):
 			log.debug("Deleting final game: "+game['gameid'])
 			r.submission(id=game['threadid']).delete()
 			markGameDeleted(game['gameid'])
