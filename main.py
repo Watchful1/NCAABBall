@@ -165,12 +165,13 @@ while True:
 	sub = r.subreddit(SUBREDDIT)
 	finalGames = set()
 	for game in jsonData['scoreboard'][0]['games']:
-		gamePostDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc) - timedelta(hours=1)
+		gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
+		gamePostDatetime = gameDatetime - timedelta(hours=1)
 		if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
 			output = getGameByID(str(game['id']))
 			if output is None:
 				log.debug("Posting thread for game: "+game['id'])
-				threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".format(game['home']['nameRaw'], game['away']['nameRaw'], gamePostDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
+				threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".format(game['home']['nameRaw'], game['away']['nameRaw'], gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
 				log.debug("    Thread posted: "+str(threadID))
 				postGame(str(game['id']), str(threadID))
 
