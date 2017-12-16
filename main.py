@@ -171,6 +171,7 @@ while True:
 			if output is None:
 				log.debug("Posting thread for game: "+game['id'])
 				threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".format(game['home']['nameRaw'], game['away']['nameRaw'], gamePostDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
+				log.debug("    Thread posted: "+str(threadID))
 				postGame(str(game['id']), str(threadID))
 
 		if 'finalMessage' in game and game['finalMessage'] == "Final":
@@ -179,7 +180,7 @@ while True:
 	for game in getGames():
 		gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
 		if game['gameid'] in finalGames or gamePostDatetime < currentDate - timedelta(hours=8):
-			log.debug("Deleting final game: "+game['gameid'])
+			log.debug("Deleting final game: "+game['gameid']+" : "+game['threadid'])
 			r.submission(id=game['threadid']).delete()
 			markGameDeleted(game['gameid'])
 
