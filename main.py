@@ -175,7 +175,7 @@ while True:
 				log.debug("    Thread posted: "+str(threadID))
 				postGame(str(game['id']), str(threadID))
 
-		if 'finalMessage' in game and game['finalMessage'] == "Final":
+		if 'finalMessage' in game and "Final" in game['finalMessage']:
 			finalGames.add(str(game['id']))
 
 	for game in getGames():
