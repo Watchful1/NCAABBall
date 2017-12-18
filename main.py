@@ -223,13 +223,15 @@ while True:
 				output.append(fragments[1])
 				output.append(" ")
 				output.append(result)
-				output.append("\n")
+				output.append("\n\n")
 
+			log.debug(''.join(output))
 			message.reply(''.join(output))
 			message.mark_read()
 
 	currentDate = datetime.utcnow().replace(tzinfo=timezone.utc)
 	timeslug = currentDate.astimezone(estTimezone).strftime("%Y/%m/%d")
+	# http://cdn.espn.com/core/mens-college-basketball/schedule/_/date/20171218/group/50?table=true&device=desktop&country=us&lang=en&region=us&site=espn&edition-host=espn.com&one-site=true
 	url = "http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.html"
 	wrappedJson = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
 	actualJson = wrappedJson.replace("callbackWrapper(", "").strip(");")
