@@ -21,7 +21,7 @@ SUBREDDIT = "ncaaBBallStreams"
 USER_AGENT = "NCAABBall (by /u/Watchful1)"
 LOOP_TIME = 15 * 60
 DATABASE_NAME = "database.db"
-OWNER_NAME = "Watchful1"
+OWNER_NAME = "watchful1"
 
 estTimezone = timezone(timedelta(hours=-5))
 
