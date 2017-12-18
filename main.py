@@ -212,6 +212,7 @@ while True:
 	for message in r.inbox.unread(limit=100):
 		# checks to see as some comments might be replys and non PMs
 		if isinstance(message, praw.models.Message) and str(message.author).lower() == OWNER_NAME:
+			log.debug("Parsing message")
 			output = []
 			for line in message.body.splitlines():
 				fragments = line.split(":")
