@@ -209,7 +209,7 @@ while True:
 	startTime = time.perf_counter()
 	log.debug("Starting run")
 
-	for message in r.getMessages():
+	for message in r.inbox.unread(limit=100):
 		# checks to see as some comments might be replys and non PMs
 		if isinstance(message, praw.models.Message) and str(message.author).lower() == OWNER_NAME:
 			output = []
@@ -226,6 +226,7 @@ while True:
 				output.append("\n")
 
 			message.reply(''.join(output))
+			message.mark_read()
 
 	currentDate = datetime.utcnow().replace(tzinfo=timezone.utc)
 	timeslug = currentDate.astimezone(estTimezone).strftime("%Y/%m/%d")
