@@ -209,60 +209,76 @@ while True:
 	startTime = time.perf_counter()
 	log.debug("Starting run")
 
-	for message in r.inbox.unread(limit=100):
-		# checks to see as some comments might be replys and non PMs
-		if isinstance(message, praw.models.Message) and str(message.author).lower() == OWNER_NAME:
-			log.debug("Parsing message")
-			output = []
-			for line in message.body.splitlines():
-				fragments = line.split(":")
-				if len(fragments) != 2: continue
-				result = setReplacement(fragments[0], fragments[1])
-				output.append("Replacement from ")
-				output.append(fragments[0])
-				output.append(" to ")
-				output.append(fragments[1])
-				output.append(" ")
-				output.append(result)
-				output.append("\n\n")
+	try:
+		for message in r.inbox.unread(limit=100):
+			# checks to see as some comments might be replys and non PMs
+			if isinstance(message, praw.models.Message) and str(message.author).lower() == OWNER_NAME:
+				log.debug("Parsing message")
+				output = []
+				for line in message.body.splitlines():
+					fragments = line.split(":")
+					if len(fragments) != 2: continue
+					result = setReplacement(fragments[0], fragments[1])
+					output.append("Replacement from ")
+					output.append(fragments[0])
+					output.append(" to ")
+					output.append(fragments[1])
+					output.append(" ")
+					output.append(result)
+					output.append("\n\n")
 
-			log.debug(''.join(output))
-			message.reply(''.join(output))
-			message.mark_read()
+				log.debug(''.join(output))
+				message.reply(''.join(output))
+				message.mark_read()
+	except Exception:
+		log.warning("Exception parsing messages")
+		log.warning(traceback.format_exc())
 
 	currentDate = datetime.utcnow().replace(tzinfo=timezone.utc)
 	timeslug = currentDate.astimezone(estTimezone).strftime("%Y/%m/%d")
 	# http://cdn.espn.com/core/mens-college-basketball/schedule/_/date/20171218/group/50?table=true&device=desktop&country=us&lang=en&region=us&site=espn&edition-host=espn.com&one-site=true
-	url = "http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.html"
-	wrappedJson = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
-	actualJson = wrappedJson.replace("callbackWrapper(", "").strip(");")
-	jsonData = json.loads(actualJson)
+	try:
+		url = "http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.html"
+		wrappedJson = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
+		actualJson = wrappedJson.replace("callbackWrapper(", "").strip(");")
+		jsonData = json.loads(actualJson)
+	except Exception:
+		log.warning("Exception parsing json")
+		log.warning(traceback.format_exc())
 
-	sub = r.subreddit(SUBREDDIT)
-	finalGames = set()
-	for game in jsonData['scoreboard'][0]['games']:
-		gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
-		gamePostDatetime = gameDatetime - timedelta(hours=1)
-		if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
-			output = getGameByID(str(game['id']))
-			if output is None:
-				log.debug("Posting thread for game: " + game['id'])
-				threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".
-				                      format(getReplacement(game['home']['nameRaw']),
-				                             getReplacement(game['away']['nameRaw']),
-				                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
-				log.debug("    Thread posted: " + str(threadID))
-				postGame(str(game['id']), str(threadID))
+	try:
+		sub = r.subreddit(SUBREDDIT)
+		finalGames = set()
+		for game in jsonData['scoreboard'][0]['games']:
+			gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
+			gamePostDatetime = gameDatetime - timedelta(hours=1)
+			if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
+				output = getGameByID(str(game['id']))
+				if output is None:
+					log.debug("Posting thread for game: " + game['id'])
+					threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".
+					                      format(getReplacement(game['home']['nameRaw']),
+					                             getReplacement(game['away']['nameRaw']),
+					                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
+					log.debug("    Thread posted: " + str(threadID))
+					postGame(str(game['id']), str(threadID))
 
-		if 'finalMessage' in game and "Final" in game['finalMessage']:
-			finalGames.add(str(game['id']))
+			if 'finalMessage' in game and "Final" in game['finalMessage']:
+				finalGames.add(str(game['id']))
+	except Exception:
+		log.warning("Exception posting games")
+		log.warning(traceback.format_exc())
 
-	for game in getGames():
-		gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
-		if game['gameid'] in finalGames or gamePostDatetime < currentDate - timedelta(hours=8):
-			log.debug("Deleting final game: " + game['gameid'] + " : " + game['threadid'])
-			r.submission(id=game['threadid']).delete()
-			markGameDeleted(game['gameid'])
+	try:
+		for game in getGames():
+			gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
+			if game['gameid'] in finalGames or gamePostDatetime < currentDate - timedelta(hours=8):
+				log.debug("Deleting final game: " + game['gameid'] + " : " + game['threadid'])
+				r.submission(id=game['threadid']).delete()
+				markGameDeleted(game['gameid'])
+	except Exception:
+		log.warning("Exception deleting games")
+		log.warning(traceback.format_exc())
 
 	log.debug("Run complete after: %d", int(time.perf_counter() - startTime))
 	if once:
