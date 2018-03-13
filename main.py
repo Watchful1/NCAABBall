@@ -23,7 +23,7 @@ LOOP_TIME = 15 * 60
 DATABASE_NAME = "database.db"
 OWNER_NAME = "watchful1"
 
-estTimezone = timezone(timedelta(hours=-5))
+estTimezone = timezone(timedelta(hours=-4))
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
@@ -259,7 +259,7 @@ while True:
 					threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".
 					                      format(getReplacement(game['home']['nameRaw']),
 					                             getReplacement(game['away']['nameRaw']),
-					                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
+					                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EDT")), "")
 					log.debug("    Thread posted: " + str(threadID))
 					postGame(str(game['id']), str(threadID))
 
