@@ -259,7 +259,7 @@ while True:
 					threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".
 					                      format(getReplacement(game['home']['nameRaw']),
 					                             getReplacement(game['away']['nameRaw']),
-					                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EDT")), "")
+					                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
 					log.debug("    Thread posted: " + str(threadID))
 					postGame(str(game['id']), str(threadID))
 
