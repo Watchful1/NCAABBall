@@ -19,7 +19,7 @@ from datetime import timedelta
 LOG_FOLDER_NAME = "logs"
 SUBREDDIT = "ncaaBBallStreams"
 USER_AGENT = "NCAABBall (by /u/Watchful1)"
-LOOP_TIME = 15 * 60
+LOOP_TIME = 5 * 60
 DATABASE_NAME = "database.db"
 OWNER_NAME = "watchful1"
 
