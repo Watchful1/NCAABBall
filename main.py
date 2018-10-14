@@ -236,38 +236,42 @@ while True:
 
 	currentDate = datetime.utcnow().replace(tzinfo=timezone.utc)
 	timeslug = currentDate.astimezone(estTimezone).strftime("%Y/%m/%d")
-	# http://cdn.espn.com/core/mens-college-basketball/schedule/_/date/20171218/group/50?table=true&device=desktop&country=us&lang=en&region=us&site=espn&edition-host=espn.com&one-site=true
-	try:
-		url = "http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.html"
-		wrappedJson = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
-		actualJson = wrappedJson.replace("callbackWrapper(", "").strip(");")
-		jsonData = json.loads(actualJson)
-	except Exception:
-		log.warning("Exception parsing json")
-		log.warning(traceback.format_exc())
+	# https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/11/06/scoreboard.json
+	# http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/d1/2018/11/06/scoreboard.json
+	url = "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.json"
+	response = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
+	if response.status_code != 200:
+		log.info(f"Bad status code, no games: {response.status_code}")
+	else:
+		try:
+			jsonStr = response.text
+			jsonData = json.loads(jsonStr)
 
-	try:
-		sub = r.subreddit(SUBREDDIT)
-		finalGames = set()
-		for game in jsonData['scoreboard'][0]['games']:
-			gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
-			gamePostDatetime = gameDatetime - timedelta(hours=1)
-			if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
-				output = getGameByID(str(game['id']))
-				if output is None:
-					log.debug("Posting thread for game: " + game['id'])
-					threadID = sub.submit("Game thread: {0} vs. {1} [{2}]".
-					                      format(getReplacement(game['home']['nameRaw']),
-					                             getReplacement(game['away']['nameRaw']),
-					                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST")), "")
-					log.debug("    Thread posted: " + str(threadID))
-					postGame(str(game['id']), str(threadID))
+			sub = r.subreddit(SUBREDDIT)
+			finalGames = set()
+			for game in jsonData['games']:
+				gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
+				gamePostDatetime = gameDatetime - timedelta(hours=1)
+				if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
+					output = getGameByID(str(game['gameID']))
+					if output is None:
+						log.debug("Posting thread for game: " + game['gameID'])
+						title = "Game thread: {0} vs. {1} [{2}]".format(getReplacement(game['home']['names']['short']),
+						                             getReplacement(game['away']['names']['short']),
+						                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST"))
+						if debug:
+							log.debug(title)
+							threadID = 'debugid'
+						else:
+							threadID = sub.submit(title, "")
+						log.debug("    Thread posted: " + str(threadID))
+						postGame(str(game['gameID']), str(threadID))
 
-			if 'finalMessage' in game and "Final" in game['finalMessage']:
-				finalGames.add(str(game['id']))
-	except Exception:
-		log.warning("Exception posting games")
-		log.warning(traceback.format_exc())
+				if 'finalMessage' in game and "Final" in game['finalMessage']:
+					finalGames.add(str(game['gameID']))
+		except Exception:
+			log.warning("Exception posting games")
+			log.warning(traceback.format_exc())
 
 	try:
 		for game in getGames():
