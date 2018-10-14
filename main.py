@@ -241,7 +241,7 @@ while True:
 	url = "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.json"
 	response = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
 	if response.status_code != 200:
-		log.info(f"Bad status code, no games: {response.status_code}")
+		log.info("Bad status code, no games: {}".format(response.status_code))
 	else:
 		try:
 			jsonStr = response.text
