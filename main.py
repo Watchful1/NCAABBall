@@ -239,13 +239,12 @@ while True:
 	# https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/11/06/scoreboard.json
 	# http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/d1/2018/11/06/scoreboard.json
 	url = "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.json"
-	response = requests.get(url=url, headers={'User-Agent': USER_AGENT}).text
+	response = requests.get(url=url, headers={'User-Agent': USER_AGENT})
 	if response.status_code != 200:
 		log.info("Bad status code, no games: {}".format(response.status_code))
 	else:
 		try:
-			jsonStr = response.text
-			jsonData = json.loads(jsonStr)
+			jsonData = json.loads(response.text)
 
 			sub = r.subreddit(SUBREDDIT)
 			finalGames = set()
