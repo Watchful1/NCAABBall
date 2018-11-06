@@ -249,6 +249,7 @@ while True:
 			sub = r.subreddit(SUBREDDIT)
 			finalGames = set()
 			for game in jsonData['games']:
+				game = game['game']
 				gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
 				gamePostDatetime = gameDatetime - timedelta(hours=1)
 				if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
