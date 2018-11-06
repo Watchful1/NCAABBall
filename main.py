@@ -23,7 +23,7 @@ LOOP_TIME = 5 * 60
 DATABASE_NAME = "database.db"
 OWNER_NAME = "watchful1"
 
-estTimezone = timezone(timedelta(hours=-4))
+estTimezone = timezone(timedelta(hours=-5))
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
