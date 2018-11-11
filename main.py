@@ -17,7 +17,7 @@ from datetime import timedelta
 
 ### Config ###
 LOG_FOLDER_NAME = "logs"
-SUBREDDIT = "ncaaBBallStreams"
+SUBREDDIT = "Bballstreams"
 USER_AGENT = "NCAABBall (by /u/Watchful1)"
 LOOP_TIME = 5 * 60
 DATABASE_NAME = "database.db"
