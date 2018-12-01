@@ -267,7 +267,7 @@ while True:
 						log.debug("    Thread posted: " + str(threadID))
 						postGame(str(game['gameID']), str(threadID))
 
-				if 'finalMessage' in game and "Final" in game['finalMessage']:
+				if 'finalMessage' in game and "final" in game['finalMessage'].lower():
 					finalGames.add(str(game['gameID']))
 		except Exception:
 			log.warning("Exception posting games")
