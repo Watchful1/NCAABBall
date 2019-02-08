@@ -239,8 +239,12 @@ while True:
 	# https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/2018/11/06/scoreboard.json
 	# http://data.ncaa.com/jsonp/scoreboard/basketball-men/d1/d1/2018/11/06/scoreboard.json
 	url = "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.json"
-	response = requests.get(url=url, headers={'User-Agent': USER_AGENT})
-	if response.status_code != 200:
+	try:
+		response = requests.get(url=url, headers={'User-Agent': USER_AGENT})
+	except Exception as err:
+		log.warning("API request failed")
+		response = None
+	if response is None or response.status_code != 200:
 		log.info("Bad status code, no games: {}".format(response.status_code))
 	else:
 		try:
