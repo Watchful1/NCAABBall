@@ -11,6 +11,7 @@ import requests
 import traceback
 import json
 import sqlite3
+import pytz
 from datetime import datetime
 from datetime import timezone
 from datetime import timedelta
@@ -23,7 +24,7 @@ LOOP_TIME = 5 * 60
 DATABASE_NAME = "database.db"
 OWNER_NAME = "watchful1"
 
-estTimezone = timezone(timedelta(hours=-5))
+estTimezone = pytz.timezone("US/Eastern")
 
 ### Logging setup ###
 LOG_LEVEL = logging.DEBUG
@@ -262,7 +263,7 @@ while True:
 						log.debug("Posting thread for game: " + game['gameID'])
 						title = "Game thread: {0} vs. {1} [{2}]".format(getReplacement(game['home']['names']['short']),
 						                             getReplacement(game['away']['names']['short']),
-						                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p EST"))
+						                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p %Z"))
 						if debug:
 							log.debug(title)
 							threadID = 'debugid'
