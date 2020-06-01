@@ -20,7 +20,7 @@ from datetime import timedelta
 LOG_FOLDER_NAME = "logs"
 SUBREDDIT = "ncaaBBallStreams"
 USER_AGENT = "NCAABBall (by /u/Watchful1)"
-LOOP_TIME = 5 * 60
+LOOP_TIME = 2 * 60
 DATABASE_NAME = "database.db"
 OWNER_NAME = "watchful1"
 
@@ -57,14 +57,6 @@ c.execute('''
 		CreationDate TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		Deleted BOOLEAN DEFAULT 0,
 		UNIQUE (GameID, ThreadID)
-	)
-''')
-c.execute('''
-	CREATE TABLE IF NOT EXISTS replacements (
-		ID INTEGER PRIMARY KEY AUTOINCREMENT,
-		Source VARCHAR(80) NOT NULL,
-		Destination VARCHAR(80) NOT NULL,
-		UNIQUE (Source)
 	)
 ''')
 dbConn.commit()
@@ -126,51 +118,6 @@ def markGameDeleted(gameID):
 	dbConn.commit()
 
 
-def getReplacement(source):
-	c = dbConn.cursor()
-	result = c.execute('''
-		SELECT Destination
-		FROM replacements
-		WHERE Source = ?
-	''', (source,))
-
-	resultTuple = result.fetchone()
-
-	if not resultTuple:
-		return source
-	else:
-		return resultTuple[0]
-
-
-def setReplacement(source, destination):
-	c = dbConn.cursor()
-	destination = getReplacement(source)
-	if destination == source:
-		try:
-			c.execute('''
-				INSERT INTO replacements
-				(Source, Destination)
-				VALUES (?, ?)
-			''', (source, destination))
-		except sqlite3.IntegrityError:
-			return "error"
-
-		dbConn.commit()
-		return "inserted"
-	else:
-		try:
-			c.execute('''
-				UPDATE replacements
-				SET Destination = ?
-				WHERE Source = ?
-			''', (destination, source))
-		except sqlite3.IntegrityError:
-			return "error"
-
-		dbConn.commit()
-		return "updated"
-
-
 def signal_handler(signal, frame):
 	log.info("Handling interrupt")
 	dbConn.commit()
@@ -212,25 +159,7 @@ while True:
 
 	try:
 		for message in r.inbox.unread(limit=100):
-			# checks to see as some comments might be replys and non PMs
-			if isinstance(message, praw.models.Message) and str(message.author).lower() == OWNER_NAME:
-				log.debug("Parsing message")
-				output = []
-				for line in message.body.splitlines():
-					fragments = line.split(":")
-					if len(fragments) != 2: continue
-					result = setReplacement(fragments[0], fragments[1])
-					output.append("Replacement from ")
-					output.append(fragments[0])
-					output.append(" to ")
-					output.append(fragments[1])
-					output.append(" ")
-					output.append(result)
-					output.append("\n\n")
-
-				log.debug(''.join(output))
-				message.reply(''.join(output))
-				message.mark_read()
+			message.mark_read()
 	except Exception:
 		log.warning("Exception parsing messages")
 		log.warning(traceback.format_exc())
@@ -245,6 +174,7 @@ while True:
 	except Exception as err:
 		log.warning("API request failed")
 		response = None
+	finalGames = set()
 	if response is None or response.status_code != 200:
 		log.info("Bad status code, no games: {}".format(response.status_code))
 	else:
@@ -252,7 +182,6 @@ while True:
 			jsonData = json.loads(response.text)
 
 			sub = r.subreddit(SUBREDDIT)
-			finalGames = set()
 			for game in jsonData['games']:
 				game = game['game']
 				gameDatetime = datetime.utcfromtimestamp(int(game['startTimeEpoch'])).replace(tzinfo=timezone.utc)
@@ -261,8 +190,8 @@ while True:
 					output = getGameByID(str(game['gameID']))
 					if output is None:
 						log.debug("Posting thread for game: " + game['gameID'])
-						title = "Game thread: {0} vs. {1} [{2}]".format(getReplacement(game['home']['names']['short']),
-						                             getReplacement(game['away']['names']['short']),
+						title = "Game thread: {0} vs. {1} [{2}]".format(game['home']['names']['short'],
+						                             game['away']['names']['short'],
 						                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p %Z"))
 						if debug:
 							log.debug(title)
