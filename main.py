@@ -27,7 +27,7 @@ OWNER_NAME = "watchful1"
 estTimezone = pytz.timezone("US/Eastern")
 
 ### Logging setup ###
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 if not os.path.exists(LOG_FOLDER_NAME):
 	os.makedirs(LOG_FOLDER_NAME)
 LOG_FILENAME = LOG_FOLDER_NAME + "/" + "bot.log"
@@ -189,7 +189,7 @@ while True:
 				if gamePostDatetime < currentDate and gamePostDatetime > currentDate - timedelta(hours=1):
 					output = getGameByID(str(game['gameID']))
 					if output is None:
-						log.debug("Posting thread for game: " + game['gameID'])
+						log.info("Posting thread for game: " + game['gameID'])
 						title = "Game thread: {0} vs. {1} [{2}]".format(game['home']['names']['short'],
 						                             game['away']['names']['short'],
 						                             gameDatetime.astimezone(estTimezone).strftime("%I:%M %p %Z"))
@@ -198,7 +198,7 @@ while True:
 							threadID = 'debugid'
 						else:
 							threadID = sub.submit(title, "")
-						log.debug("    Thread posted: " + str(threadID))
+						log.info("    Thread posted: " + str(threadID))
 						postGame(str(game['gameID']), str(threadID))
 
 				if 'finalMessage' in game and "final" in game['finalMessage'].lower():
@@ -211,7 +211,7 @@ while True:
 		for game in getGames():
 			gamePostDatetime = datetime.strptime(game['date'], "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc)
 			if game['gameid'] in finalGames or gamePostDatetime < currentDate - timedelta(hours=5):
-				log.debug("Deleting final game: " + game['gameid'] + " : " + game['threadid'])
+				log.info("Deleting final game: " + game['gameid'] + " : " + game['threadid'])
 				r.submission(id=game['threadid']).delete()
 				markGameDeleted(game['gameid'])
 	except Exception:
