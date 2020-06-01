@@ -167,14 +167,19 @@ while True:
 	currentDate = datetime.utcnow().replace(tzinfo=timezone.utc)
 	timeslug = currentDate.astimezone(estTimezone).strftime("%Y/%m/%d")
 	url = "https://data.ncaa.com/casablanca/scoreboard/basketball-men/d1/" + timeslug + "/scoreboard.json"
+	response = None
 	jsonData = None
+	finalGames = set()
 	try:
 		response = requests.get(url=url, headers={'User-Agent': USER_AGENT})
-		jsonData = json.loads(response.text)
 	except Exception as err:
 		log.warning(f"API request failed: {url}")
 		log.warning(traceback.format_exc())
-	finalGames = set()
+	if response is not None:
+		try:
+			jsonData = json.loads(response.text)
+		except Exception as err:
+			log.info(f"No games found in json: {url}")
 	if jsonData is not None:
 		try:
 			sub = r.subreddit(SUBREDDIT)
